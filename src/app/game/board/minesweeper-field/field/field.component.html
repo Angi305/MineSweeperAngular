@@ -1,0 +1,11 @@
+<div class="field-container" (click)="onClick()" (contextmenu)="onRBClick()">
+    <ng-container *ngIf="state === 'mine' || state === 'blown-mine'">
+        <img class="mine {{state === 'blown-mine' ? 'blown-mine' : ''}}" src="assets/bomb.png">
+    </ng-container>
+    <div *ngIf="state === 'flag'" class="unrevealed">
+        <img class="flag" src="assets/bomb.png">
+    </div>
+    <div *ngIf="state === 'unrevealed'" class="unrevealed"></div>
+    <div *ngIf="state === 'empty'"></div>
+    <span *ngIf="state === 'number'" class="value" [style.color]="textColor">{{value}}</span>
+</div>
