@@ -1,6 +1,10 @@
 <div id="wrapper">
     <div id="scoreboard">
-        <div id="score-bomb-count" class="panel">{{ minesCount }}</div>
+        <div id="score-bomb-count" class="panel">
+            {{ minesCount }}
+            <button type="button" class="btn btn-secondary btn-sm" style="color: #707070;" (click)="changeLevel()">{{ isAdvancedLevel ?
+                'Advanced Level' : 'Basic Level' }}</button>
+        </div>
         <button class="" id="score-restart-button" (click)="restartGame()"></button>
         <div id="score-time-count" class="panel">{{ formattedTimer }}</div>
     </div>
@@ -8,11 +12,13 @@
         <table cellpadding="0" cellspacing="1">
             <tr *ngFor="let row of grid; let y = index">
                 <td (click)="onCellClick()" *ngFor="let field of row; let x = index">
-                    <button class="square" (click)="onFieldClick({ x: x, y: y })"
-                        (contextmenu)="onFieldRBClick({ x: x, y: y })">
-                        <app-field [state]="field.state" [value]="field.value" [x]="x" [y]="y"></app-field>
+                    <button class="square" [ngClass]="{'clicked': field.state === 'empty' || field.state === 'number'}"
+                        (click)="onFieldClick({ x: x, y: y })" (contextmenu)="onFieldRBClick({ x: x, y: y })">
+                        <app-field [state]="field.state" [value]="field.value" [x]="x" [y]="y">
+                        </app-field>
                     </button>
                 </td>
             </tr>
         </table>
     </div>
+</div>

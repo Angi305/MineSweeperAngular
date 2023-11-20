@@ -3,9 +3,9 @@
         <img class="mine {{state === 'blown-mine' ? 'blown-mine' : ''}}" src="assets/bomb.png">
     </ng-container>
     <div *ngIf="state === 'flag'" class="unrevealed">
-        <img class="flag" src="assets/bomb.png">
+        <img class="flag" src="assets/flag.png" style="width: 10px!important;">
     </div>
     <div *ngIf="state === 'unrevealed'" class="unrevealed"></div>
-    <div *ngIf="state === 'empty'"></div>
+    <div *ngIf="state === 'empty'" class='empty'></div>
     <span *ngIf="state === 'number'" class="value" [style.color]="textColor">{{value}}</span>
 </div>

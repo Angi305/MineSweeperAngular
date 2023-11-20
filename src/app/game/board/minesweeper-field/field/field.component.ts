@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output, ElementRef, OnInit } from '@angular/core';
 import { BoardComponent } from '../../board.component';
 
-
 @Component({
   selector: 'app-field',
   templateUrl: './field.component.html',
@@ -13,6 +12,7 @@ export class FieldComponent implements OnInit {
   @Input() x: number = 0;
   @Input() y: number = 0;
   @Input() isMine: boolean = false;
+  @Input() additionalMines: number = 0;
   @Output() clickEvent = new EventEmitter<object>();
   @Output() rbClickEvent = new EventEmitter<object>();
   textColor: string = '';
@@ -21,16 +21,26 @@ export class FieldComponent implements OnInit {
     'purple', 'maroon', 'turquoise',
     'black', 'gray'
   ];
-  ngOnInit(): void {
+  isClicked: boolean = false;
 
-    this.textColor = this.colours[this.value - 1];
+  ngOnInit(): void {
+    this.updateTextColor();
+  }
+
+  ngOnChanges(): void {
+    this.updateTextColor();
+  }
+
+  private updateTextColor() {
+    const adjustedValue = this.value + this.additionalMines;
+    this.textColor = this.colours[adjustedValue - 1];
   }
 
   onClick() {
+    this.isClicked = true;
     this.clickEvent.emit({ x: this.x, y: this.y });
     return false;
   }
-
   onRBClick() {
     this.rbClickEvent.emit({ x: this.x, y: this.y });
     return false;

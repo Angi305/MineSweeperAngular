@@ -1,5 +1,6 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { Subscription, interval } from 'rxjs';
+import { Router } from '@angular/router';
 
 enum GridItemState {
   Unrevealed = 'unrevealed',
@@ -26,16 +27,20 @@ interface Coordinates {
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.css']
 })
+
 export class BoardComponent implements OnInit {
   grid: GridItem[][] = [];
   dimX = 15;
   dimY = 10;
   minesCount = 20;
+  isAdvancedLevel: boolean = true;
   private timerSubscription!: Subscription;
   public timer = 0;
   formattedTimer = '00';
 
   @Output() gameOver = new EventEmitter<boolean>();
+  
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.prepareBoard();
@@ -114,6 +119,7 @@ export class BoardComponent implements OnInit {
 
     if (cell.mine) {
       this.handleMineClick(isManual);
+      cell.state = GridItemState.BlownMine;
     } else if (cell.value > 0) {
       cell.state = GridItemState.Number;
     } else {
@@ -126,27 +132,27 @@ export class BoardComponent implements OnInit {
       this.checkGameOver(cell.state);
     }
   }
-
   unrevealNeighbors(x: number, y: number): void {
-    const stack: Coordinates[] = [{ x, y }];
+    const stack: Coordinates[] = [];
+    stack.push({ x, y });
+  
     while (stack.length > 0) {
       const { x, y } = stack.pop()!;
-
-      if (this.isEmpty(x, y)) {
+  
+      if (this.isUnrevealed(x, y)) {
         this.unreveal(x, y);
-
-        const neighbors = this.neighbors(x, y);
-        neighbors.forEach((nb) => {
-          if (this.isUnrevealed(nb.x, nb.y) && !stack.some((crd) => crd.x === nb.x && crd.y === nb.y)) {
-            stack.push(nb);
-          }
-        });
-      } else if (this.grid[y][x].value > 0) {
-        this.unreveal(x, y);
+  
+        if (this.grid[y][x].value === 0) {
+          const neighbors = this.neighbors(x, y);
+          neighbors.forEach((nb) => {
+            if (!stack.some((crd) => crd.x === nb.x && crd.y === nb.y)) {
+              stack.push(nb);
+            }
+          });
+        }
       }
     }
   }
-
   checkGameOver(newState?: GridItemState): void {
     if (newState === GridItemState.BlownMine) {
       this.handleGameLost();
@@ -161,12 +167,53 @@ export class BoardComponent implements OnInit {
     }
   }
 
+  setBasicLevel():void{
+      this.dimX = 15;
+      this.dimY = 10;
+      this.minesCount = 20;
+  }
+
+  setAdvancedLevel():void{
+    this.dimX = 30;
+    this.dimY = 25;
+    this.minesCount = 60;
+}
   zeroPad(number: number, width: number): string {
     const numberString = number.toString();
     width -= numberString.length;
     return width > 0 ? '0'.repeat(width + (/\./.test(numberString) ? 2 : 1)) + numberString : numberString;
   }
+  changeLevel(): void {
+    if(this.isAdvancedLevel)
+    {
+      this.setAdvancedLevel();
+      this.isAdvancedLevel = false;
+    }
+    else
+    {
+      this.setBasicLevel();
+      this.isAdvancedLevel = true;
+    }
 
+    this.prepareBoard();
+    this.router.navigate(['app-bombs']);
+  }
+  
+  private addAdditionalMines(count: number): void {
+    let addedMines = 0;
+  
+    while (addedMines < count) {
+      const x = Math.floor(Math.random() * this.dimX);
+      const y = Math.floor(Math.random() * this.dimY);
+  
+      if (!this.grid[y][x].mine) {
+        this.grid[y][x].mine = true;
+        this.updateNeighborValues(x, y);
+        addedMines++;
+      }
+    }
+
+  }
   restartGame(): void {
     this.grid = [];
     this.timer = 0;
@@ -187,7 +234,6 @@ export class BoardComponent implements OnInit {
       });
     }
   }
-
   ngOnDestroy(): void {
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
@@ -201,7 +247,7 @@ export class BoardComponent implements OnInit {
   onFieldRBClick($event: Coordinates): void {
     this.mark($event.x, $event.y);
   }
-
+  
   private handleMineClick(isManual: boolean): void {
     const gameLost = !isManual;
     this.grid.forEach((row) => row.forEach((cell) => {
